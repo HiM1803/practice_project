@@ -5,6 +5,7 @@ const cors = require("cors");
 const multer = require("multer");
 const hbs = require("hbs");
 // const upload = multer({ dest: 'uploads/' })
+const File = require('./model/file');
 
 //env file config
 const dotenv = require("dotenv");
@@ -44,27 +45,65 @@ app.use("/api/doctorRegister" , require("./routes/doctorsDetails.js"));
 //code for multer
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, './uploads')
-    },
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-      cb(null, file.fieldname + '-' + uniqueSuffix)
-    }
+  destination: function (req, file, cb) {
+    cb(null, "./uploads")
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, file.fieldname + '-' + uniqueSuffix)
+  }
   })
-  
+
   const upload = multer({ storage: storage })
 
+
+  app.get("/home", async (req, res) => {
+      // Fetch all uploaded files from MongoDB
+      const files = await File.find();
+      res.render("home", {
+          username: "Himanshu   ",
+          users: [{ name: "John Doe", age: 30 }, { name: "Jane Smith", age: 25 }],
+          files: files // Pass files to the template
+      });
+  });
+  
+  // Route to handle file upload and save metadata in MongoDB
+  app.post('/profile', upload.single('avatar'), async (req, res) => {
+      try {
+          // Create a new file record in MongoDB
+          const fileData = new File({
+              originalName: req.file.originalname,
+              filename: req.file.filename,
+              path: req.file.path,
+              size: req.file.size,
+          });
+  
+          await fileData.save(); // Save metadata to MongoDB
+          console.log("File metadata saved:", fileData);
+  
+          return res.redirect("/home");
+      } catch (error) {
+          console.error("Error uploading file:", error);
+          res.status(500).send("Error uploading file.");
+      }
+  });
+
+//using multer 
 app.post('/profile', upload.single('avatar'), function (req, res, next) {
-    // req.file is the `avatar` file
-    // req.body will hold the text fields, if there were any
-    console.log(req.body);
-    console.log(req.file);
-    return res.redirect('/home');
+  // req.file is the avatar file
+  // req.body will hold the text fields, if there were any
+  console.log(req.body);
+  console.log(req.file);
+  return res.redirect("/home");
   })
 
-  
-
+  app.get("/profile",async(req,res)=>{
+    
+    let allblog=await Profie.find();
+    console.log("chalgya oyee");
+    
+    res.render("profile",{profile : allblog});
+}) 
 
 
 app.listen(port,()=>{
