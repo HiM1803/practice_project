@@ -1,8 +1,9 @@
 const asyncHandler = require("express-async-handler");
+const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../model/userModel"); // Corrected variable name to 'User'
 require("dotenv").config();
-
+const JWT_SECRET = "xyz123abc";
 const registerUser = asyncHandler(async (req, res) => {
     const { firstName, lastName, age, gender, bloodGroup, email, phoneNumber, password } = req.body;
 
@@ -47,15 +48,17 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new Error("Please provide email and password");
     }
     const user = await User.findOne({ email });
+    const token = jwt.sign({id:user._id},JWT_SECRET,{expiresIn:"1h"});
     if (user && (await bcrypt.compare(password, user.password))) {
         res.status(200).json({
-            message: "User logged in successfully",
-            user: {
-                id: user._id,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-            },
+            message: "User logged in successfully",token
+           
+            // user: {
+            //     id: user._id,
+            //     firstName: user.firstName,
+            //     lastName: user.lastName,
+            //     email: user.email,
+            // },
         });
     } else {
         res.status(401);
@@ -63,4 +66,14 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { registerUser, loginUser };
+const mydetails = async(req,res)=>{
+    const id = req.user.id;
+    const userExists = await user.findById(id);
+    if(userExists){
+        res.send({userExists});
+    }else{
+        res.status(404).json({message:"user not found"});
+    }
+}
+
+module.exports = { registerUser, loginUser,mydetails };
