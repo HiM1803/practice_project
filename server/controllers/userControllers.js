@@ -66,14 +66,27 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
-const mydetails = async(req,res)=>{
-    const id = req.user.id;
-    const userExists = await user.findById(id);
-    if(userExists){
-        res.send({userExists});
-    }else{
-        res.status(404).json({message:"user not found"});
-    }
+const userProfile=asyncHandler(async(req,res)=>{
+    // const {email}=req.body
+
+    const id=req.user.id
+
+    const user=await User.findById(id)
+    // console.log(user.age)
+    res.send({user})
+})
+
+const updateuserprofile = async (req,res)=>{
+    const {firstName,email,phoneNumber,age} = req.body;
+
+    const user = User.findOne({email});
+    const updatedUser = await user.findOneAndUpdate(
+        {email},
+        {firstName,phoneNumber,age},
+        {new:true},
+    );
+    res.json({user:updatedUser});
+    console.log("updated");
 }
 
-module.exports = { registerUser, loginUser,mydetails };
+module.exports = { registerUser, loginUser,userProfile,updateuserprofile };

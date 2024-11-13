@@ -5,31 +5,53 @@ const generateToken=(userData)=>{
     return jwt.sign(userData,process.env.PRIVATE_KEY);
 }
 
-const validateJwtToken=(res,req,next)=>{
-    //first we are checking that jwt token is availble or not
-    const authorization = req.headers.authorization;
-    //output1:bearer jsflsjdfk
-    //output2: dfghyjrdh
-    //output3: 
-    //output4: token bana hi nhi hai local ho ya endpoimt testing se bheja ho 
-    if(!authirization){
-        return res.status(401).json({err:'Token not available'})
-    }
-    //we are storing the headers value from headers and splitting to get "bearer xyz.ab.kjh to xyz.abc.kjh"
-    const token = req.headers.authorization.split(' ')[1]
-    // token provided is wrong throw  error message unauthorized
-    if(!token){
-        return res.status(401).json({err:'unauthorized user'});
-    }
-    try{
-        // in this Error handler try catch we are handling if token is validatec  then move to next middleware or respimd back to client 
-        const validateToken = jwt.verify(token,process.env.PRIVATE_KEY);
-        req.user=validateToken;
+// const validateJwtToken=(res,req,next)=>{
+//     //first we are checking that jwt token is availble or not
+//     const authorization = req.headers.authorization;
+//     //output1:bearer jsflsjdfk
+//     //output2: dfghyjrdh
+//     //output3: 
+//     //output4: token bana hi nhi hai local ho ya endpoimt testing se bheja ho 
+//     if(!authorization){
+//         return res.status(401).json({err:'Token not available'})
+//     }
+//     //we are storing the headers value from headers and splitting to get "bearer xyz.ab.kjh to xyz.abc.kjh"
+//     const token = req.headers.authorization.split(' ')[1]
+//     // token provided is wrong throw  error message unauthorized
+//     if(!token){
+//         return res.status(401).json({err:'unauthorized user'});
+//     }
+//     try{
+//         // in this Error handler try catch we are handling if token is validatec  then move to next middleware or respimd back to client 
+//         const validateToken = jwt.verify(token,process.env.PRIVATE_KEY);
+//         req.user=validateToken;
 
-        next();
-    }catch(err){
-        console.log("Error occured",err.message);
+//         next();
+//     }catch(err){
+//         console.log("Error occured",err.message);
+//     }
+// }
+
+const validateJwtToken = (req, res, next) => {
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+      return res.status(401).json({ err: 'Token not available' });
     }
-}
+  
+    const token = authorization.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ err: 'Unauthorized user' });
+    }
+  
+    try {
+      const validatedToken = jwt.verify(token, process.env.PRIVATE_KEY);
+      req.user = validatedToken;
+      next();
+    } catch (err) {
+      console.log("Error occurred", err.message);
+      return res.status(403).json({ err: 'Invalid token' });
+    }
+  }
+  
 
 module.exports = {generateToken,validateJwtToken};
