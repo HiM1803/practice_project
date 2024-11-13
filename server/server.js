@@ -105,6 +105,8 @@ app.post('/profile', upload.single('avatar'), function (req, res, next) {
     res.render("profile",{profile : allblog});
 }) 
 
+//router for newsletter
+app.use("/api/newsletter",require("./routes/newsletterRoutes.js"))
 
 app.listen(port,()=>{
     console.log(`server running on port http://localhost:${port}`);
